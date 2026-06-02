@@ -148,6 +148,6 @@ The command should return no matches.
 
 If this Sanity blog system saves you time, you can support continued maintenance:
 
-- GitHub Sponsors: https://github.com/sponsors/BHINNKJ
+- Buy Me a Coffee: https://buymeacoffee.com/zhaoluhao9g
 
 Maintainers can replace this link with another donation, sponsor, or appreciation link in `.github/FUNDING.yml`.
