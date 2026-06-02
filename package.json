@@ -1,0 +1,44 @@
+{
+  "name": "best-sanity-blog-system",
+  "version": "0.1.0",
+  "description": "Open source Sanity blog system for SEO, E-E-A-T, Portable Text, JSON-LD, RSS, llms.txt, Next.js, and Astro.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EasyGlobe/best-sanity-blog-system.git"
+  },
+  "keywords": [
+    "sanity",
+    "sanity-blog",
+    "portable-text",
+    "seo",
+    "eeat",
+    "json-ld",
+    "rss",
+    "llms-txt",
+    "astro",
+    "nextjs"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./schema": {
+      "types": "./src/schema.d.ts",
+      "default": "./src/schema.js"
+    }
+  },
+  "scripts": {
+    "test": "node --test src/*.test.js",
+    "secret-scan": "node scripts/secret-scan.mjs"
+  },
+  "files": [
+    "src",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ]
+}
