@@ -24,6 +24,7 @@ This repository keeps those pieces small and portable.
 - Sanity schema objects for `article`, `author`, `category`, `tag`, and `blockContent`
 - Article normalization helpers
 - Portable Text and Markdown text extraction
+- Portable Text table schema plus pasted table normalization helpers
 - Table of contents generation
 - JSON-LD builders for article, FAQ, breadcrumb, and collection pages
 - RSS 2.0 feed builder
@@ -65,6 +66,20 @@ export default defineConfig({
 ```
 
 Do not hardcode project IDs or tokens in open source code.
+
+## Table Blocks
+
+`blockContent` includes a `table` block with `caption`, `hasHeaderRow`, and `rows[].cells[]`.
+Use `normalizePastedTable()` when you need to convert pasted spreadsheet content into the same Sanity shape:
+
+```js
+import { normalizePastedTable } from "best-sanity-blog-system";
+
+const tableBlock = normalizePastedTable("Feature\tBasic\tPro\nForms\tYes\tYes", {
+  caption: "Plan comparison",
+  hasHeaderRow: true
+});
+```
 
 ## Article Model
 

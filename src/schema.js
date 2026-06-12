@@ -56,7 +56,8 @@ export const blockContentType = {
         },
         { name: "body", title: "Body", type: "text", rows: 3, validation: (Rule) => Rule.required() }
       ]
-    }
+    },
+    tableBlock()
   ]
 };
 
@@ -170,6 +171,56 @@ function imageField(name, title, group) {
 
 function imageBlock() {
   return imageField("image", "Image");
+}
+
+function tableBlock() {
+  return {
+    name: "table",
+    title: "Table",
+    type: "object",
+    fields: [
+      { name: "caption", title: "Caption", type: "string" },
+      { name: "hasHeaderRow", title: "Use first row as header", type: "boolean", initialValue: false },
+      {
+        name: "rows",
+        title: "Rows",
+        type: "array",
+        of: [
+          {
+            name: "tableRow",
+            title: "Table row",
+            type: "object",
+            fields: [
+              {
+                name: "cells",
+                title: "Cells",
+                type: "array",
+                of: [{ type: "string" }]
+              }
+            ]
+          }
+        ],
+        validation: (Rule) => Rule.required().min(1)
+      }
+    ],
+    preview: {
+      select: {
+        caption: "caption",
+        rows: "rows"
+      },
+      prepare({ caption, rows }) {
+        const rowCount = Array.isArray(rows) ? rows.length : 0;
+        const columnCount = Array.isArray(rows)
+          ? rows.reduce((count, row) => Math.max(count, Array.isArray(row?.cells) ? row.cells.length : 0), 0)
+          : 0;
+
+        return {
+          title: caption || "Table",
+          subtitle: `${rowCount} rows x ${columnCount} columns`
+        };
+      }
+    }
+  };
 }
 
 function faqItemsField() {

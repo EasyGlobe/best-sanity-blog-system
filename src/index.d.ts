@@ -62,6 +62,18 @@ export type BlogSource = {
   accessedAt?: string;
 };
 
+export type BlogTableBlock = {
+  _type: "table";
+  _key?: string;
+  caption?: string;
+  hasHeaderRow?: boolean;
+  rows: Array<{
+    _type: "tableRow";
+    _key?: string;
+    cells: string[];
+  }>;
+};
+
 export type TocItem = {
   id: string;
   text: string;
@@ -71,6 +83,10 @@ export type TocItem = {
 export function normalizeArticle(input: Record<string, unknown>): BlogArticle | undefined;
 export function extractToc(article: Partial<BlogArticle>, options?: { maxDepth?: number }): TocItem[];
 export function portableTextToPlainText(blocks?: unknown[]): string;
+export function normalizePastedTable(
+  input: string | Array<Array<unknown>>,
+  options?: { caption?: string; hasHeaderRow?: boolean; includeKeys?: boolean }
+): BlogTableBlock | undefined;
 export function slugifyHeading(value: string): string;
 export function buildBlogPostingJsonLd(article: BlogArticle, site: BlogSite): Record<string, unknown>;
 export function buildFaqJsonLd(faqItems?: BlogFaqItem[]): Record<string, unknown> | undefined;

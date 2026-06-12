@@ -65,6 +65,10 @@ export function portableTextToPlainText(blocks = []) {
         return block.body ?? "";
       }
 
+      if (block?._type === "table") {
+        return tableToPlainText(block);
+      }
+
       return "";
     })
     .filter(Boolean)
@@ -81,6 +85,30 @@ export function slugifyHeading(value) {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "section"
   );
+}
+
+export function normalizePastedTable(input, options = {}) {
+  const rows = parsePastedTableRows(input);
+
+  if (!rows.length) {
+    return undefined;
+  }
+
+  const columnCount = Math.max(1, ...rows.map((row) => row.length));
+
+  return removeUndefined({
+    _type: "table",
+    _key: options.includeKeys === false ? undefined : createKey(),
+    caption: options.caption,
+    hasHeaderRow: options.hasHeaderRow === true,
+    rows: rows.map((row) =>
+      removeUndefined({
+        _type: "tableRow",
+        _key: options.includeKeys === false ? undefined : createKey(),
+        cells: padCells(row, columnCount)
+      })
+    )
+  });
 }
 
 export function buildBlogPostingJsonLd(article, site) {
@@ -342,6 +370,97 @@ function portableTextBlockText(block) {
     .join("")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function tableToPlainText(block) {
+  return (block.rows ?? [])
+    .map((row) => (Array.isArray(row?.cells) ? row.cells.join(" ") : ""))
+    .join(" ");
+}
+
+function parsePastedTableRows(input) {
+  if (Array.isArray(input)) {
+    return normalizeRows(input);
+  }
+
+  const text = String(input ?? "").trim();
+
+  if (!text) {
+    return [];
+  }
+
+  if (/<table[\s>]/i.test(text)) {
+    return normalizeRows(parseHtmlTableRows(text));
+  }
+
+  return normalizeRows(text.split(/\r?\n/).map((line) => (line.includes("\t") ? line.split("\t") : parseCsvLine(line))));
+}
+
+function parseHtmlTableRows(html) {
+  return [...html.matchAll(/<tr[\s\S]*?<\/tr>/gi)].map((rowMatch) =>
+    [...rowMatch[0].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((cellMatch) => stripHtml(cellMatch[1]))
+  );
+}
+
+function parseCsvLine(line) {
+  const cells = [];
+  let current = "";
+  let insideQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    const nextCharacter = line[index + 1];
+
+    if (character === '"' && nextCharacter === '"') {
+      current += '"';
+      index += 1;
+    } else if (character === '"') {
+      insideQuotes = !insideQuotes;
+    } else if (character === "," && !insideQuotes) {
+      cells.push(current);
+      current = "";
+    } else {
+      current += character;
+    }
+  }
+
+  cells.push(current);
+  return cells;
+}
+
+function normalizeRows(rows) {
+  return rows
+    .map((row) => (Array.isArray(row) ? row : [row]).map((cell) => normalizeCellText(cell)))
+    .filter((row) => row.some((cell) => cell.length > 0));
+}
+
+function normalizeCellText(value) {
+  return String(value ?? "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function padCells(row, columnCount) {
+  return [...row, ...Array(Math.max(0, columnCount - row.length)).fill("")];
+}
+
+function stripHtml(value) {
+  return normalizeCellText(
+    String(value)
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+  );
+}
+
+function createKey() {
+  return Math.random().toString(36).slice(2, 14);
 }
 
 function stripMarkdown(value) {

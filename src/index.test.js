@@ -6,9 +6,12 @@ import {
   buildLlmsTxt,
   buildRssFeed,
   extractToc,
+  normalizePastedTable,
   normalizeArticle,
+  portableTextToPlainText,
   slugifyHeading
 } from "./index.js";
+import { blockContentType } from "./schema.js";
 
 const site = {
   name: "Example Blog",
@@ -63,4 +66,54 @@ test("builds llms text", () => {
   const output = buildLlmsTxt({ site, articles: [article] });
   assert.match(output, /## Recent Blog Articles/);
   assert.match(output, /How to Build a Sanity Blog/);
+});
+
+test("includes table blocks in portable text schema", () => {
+  assert.ok(blockContentType.of.some((block) => block.name === "table"));
+});
+
+test("normalizes pasted tsv tables", () => {
+  const table = normalizePastedTable("Feature\tBasic\tPro\nForms\tYes\tYes", {
+    caption: "Plan comparison",
+    hasHeaderRow: true,
+    includeKeys: false
+  });
+
+  assert.deepEqual(table, {
+    _type: "table",
+    caption: "Plan comparison",
+    hasHeaderRow: true,
+    rows: [
+      { _type: "tableRow", cells: ["Feature", "Basic", "Pro"] },
+      { _type: "tableRow", cells: ["Forms", "Yes", "Yes"] }
+    ]
+  });
+});
+
+test("normalizes csv and html pasted tables", () => {
+  assert.deepEqual(normalizePastedTable('"Feature, name",Basic\nForms,Yes', { includeKeys: false })?.rows[0].cells, [
+    "Feature, name",
+    "Basic"
+  ]);
+
+  assert.deepEqual(
+    normalizePastedTable("<table><tr><th>Name</th><th>Price</th></tr><tr><td>Pro</td><td>$20</td></tr></table>", {
+      includeKeys: false
+    })?.rows[1].cells,
+    ["Pro", "$20"]
+  );
+});
+
+test("extracts table text from portable text", () => {
+  const output = portableTextToPlainText([
+    {
+      _type: "table",
+      rows: [
+        { _type: "tableRow", cells: ["Feature", "Basic"] },
+        { _type: "tableRow", cells: ["Forms", "Yes"] }
+      ]
+    }
+  ]);
+
+  assert.equal(output, "Feature Basic Forms Yes");
 });
