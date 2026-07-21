@@ -24,7 +24,9 @@ This repository keeps those pieces small and portable.
 - Sanity schema objects for `article`, `author`, `category`, `tag`, and `blockContent`
 - Article normalization helpers
 - Portable Text and Markdown text extraction
-- Portable Text table schema plus pasted table normalization helpers
+- Backward-compatible basic tables plus rich table paste support for Sanity Studio 6
+- Portable Text React renderers for Sanity images, basic tables, and rich tables
+- Framework-neutral Sanity image URL resolution for Astro and other stacks
 - Table of contents generation
 - JSON-LD builders for article, FAQ, breadcrumb, and collection pages
 - RSS 2.0 feed builder
@@ -49,7 +51,22 @@ import {
 } from "best-sanity-blog-system";
 ```
 
+The core entry has no required runtime dependency. Install only the adapter peers you use:
+
+```bash
+# Sanity Studio 6 rich-table editing and paste support
+npm install sanity@^6 react@^19 react-dom@^19 styled-components@^6 sanity-plugin-rich-table@^2
+
+# React / Next.js Portable Text rendering
+npm install react@^19 @portabletext/react@^6 @sanity/image-url@^2
+
+# Astro or another non-React frontend that only needs Sanity image URLs
+npm install @sanity/image-url@^2
+```
+
 ## Sanity Studio Usage
+
+For the original dependency-free schema with basic tables:
 
 ```js
 import { schemaTypes } from "best-sanity-blog-system/schema";
@@ -67,9 +84,36 @@ export default defineConfig({
 
 Do not hardcode project IDs or tokens in open source code.
 
+For the recommended Studio 6 setup with spreadsheet, HTML, Markdown, CSV, and Excel table imports:
+
+```js
+import { defineConfig } from "sanity";
+import { structureTool } from "sanity/structure";
+import { createBlogStudioIntegration } from "best-sanity-blog-system/studio";
+
+const blog = createBlogStudioIntegration();
+
+export default defineConfig({
+  name: "content",
+  title: "Content Studio",
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID,
+  dataset: process.env.SANITY_STUDIO_DATASET,
+  plugins: [structureTool(), ...blog.plugins],
+  form: blog.form,
+  schema: {
+    types: blog.schemaTypes
+  }
+});
+```
+
+`createBlogStudioIntegration()` preserves the legacy `table` schema and adds `richTableBlock`.
+Its Portable Text plugin calls Sanity's default renderer before adding paste behavior, so normal
+editing features remain available.
+
 ## Table Blocks
 
-`blockContent` includes a `table` block with `caption`, `hasHeaderRow`, and `rows[].cells[]`.
+The default `blockContent` includes a legacy `table` block with `caption`, `hasHeaderRow`, and
+`rows[].cells[]`.
 Use `normalizePastedTable()` when you need to convert pasted spreadsheet content into the same Sanity shape:
 
 ```js
@@ -80,6 +124,59 @@ const tableBlock = normalizePastedTable("Feature\tBasic\tPro\nForms\tYes\tYes", 
   hasHeaderRow: true
 });
 ```
+
+The Studio adapter adds the newer `richTableBlock` format. Rich cells contain Portable Text,
+column and row titles remain semantic headers, and existing legacy table documents continue to render.
+
+## Portable Text Rendering
+
+The React adapter renders body images from their normal Sanity `asset._ref`, applies hotspot/crop
+metadata through Sanity's image builder, and renders both table formats:
+
+```tsx
+import { PortableText } from "@portabletext/react";
+import { createBlogPortableTextComponents } from "best-sanity-blog-system/react";
+
+const components = createBlogPortableTextComponents({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  imageWidth: 1600,
+  classNames: {
+    image: "article-image",
+    table: "article-table"
+  }
+});
+
+export function ArticleBody({ value }) {
+  return <PortableText value={value} components={components} />;
+}
+```
+
+The adapter emits semantic `figure`, `figcaption`, `table`, `caption`, `th`, and `td` elements.
+It includes only functional responsive styles; use `classNames` to apply site-specific design.
+
+Astro and other renderers can resolve Sanity image references without loading React:
+
+```js
+import { resolveSanityImageUrl } from "best-sanity-blog-system/image";
+
+const src = resolveSanityImageUrl(imageBlock, {
+  projectId: import.meta.env.PUBLIC_SANITY_PROJECT_ID,
+  dataset: import.meta.env.PUBLIC_SANITY_DATASET,
+  width: 1600
+});
+```
+
+Never copy a project ID from an example application. Pass the consuming Studio's public project ID
+and dataset explicitly.
+
+## Migrating Existing Blogs
+
+1. Keep `schemaTypes` if you only need the legacy table format.
+2. Switch to `createBlogStudioIntegration()` to add rich tables without deleting legacy blocks.
+3. Register the React adapter's components on the frontend before authors publish images or rich tables.
+4. Query the complete Portable Text `body`; `@sanity/image-url` can resolve image `asset._ref` values directly.
+5. Verify one pasted spreadsheet table and one uploaded body image from Studio through the published page.
 
 ## Article Model
 

@@ -44,6 +44,7 @@ export type BlogTerm = {
 
 export type BlogImage = {
   url?: string;
+  assetRef?: string;
   alt?: string;
   caption?: string;
   credit?: string;
@@ -71,6 +72,31 @@ export type BlogTableBlock = {
     _type: "tableRow";
     _key?: string;
     cells: string[];
+  }>;
+};
+
+export type BlogRichTableBlock = {
+  _type: "richTableBlock";
+  _key?: string;
+  hasColumnTitles?: boolean;
+  hasRowTitles?: boolean;
+  rowTitleWidth?: number;
+  columnHeaders?: Array<{
+    _type?: "columnHeader";
+    _key?: string;
+    title?: string;
+    cellIndex: number;
+    width?: number;
+  }>;
+  rows: Array<{
+    _type?: "row";
+    _key?: string;
+    title?: string;
+    cells?: Array<{
+      _type?: "richTableCell";
+      _key?: string;
+      content?: unknown[];
+    }>;
   }>;
 };
 

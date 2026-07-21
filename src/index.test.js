@@ -117,3 +117,41 @@ test("extracts table text from portable text", () => {
 
   assert.equal(output, "Feature Basic Forms Yes");
 });
+
+test("extracts rich table text from portable text", () => {
+  const output = portableTextToPlainText([
+    {
+      _type: "richTableBlock",
+      hasColumnTitles: true,
+      hasRowTitles: true,
+      columnHeaders: [{ title: "Plan" }, { title: "Price" }],
+      rows: [
+        {
+          title: "Starter",
+          cells: [
+            { content: [{ _type: "block", children: [{ _type: "span", text: "Basic" }] }] },
+            { content: [{ _type: "block", children: [{ _type: "span", text: "$49" }] }] }
+          ]
+        }
+      ]
+    }
+  ]);
+
+  assert.equal(output, "Plan Price Starter Basic $49");
+});
+
+test("keeps Sanity image references during article normalization", () => {
+  const normalized = normalizeArticle({
+    title: "Article with a Sanity image",
+    slug: "sanity-image",
+    description: "A sufficiently descriptive summary for a portable Sanity image reference.",
+    publishedAt: "2026-06-02T00:00:00.000Z",
+    mainImage: {
+      asset: { _type: "reference", _ref: "image-abc123-1200x800-jpg" },
+      alt: "A useful image description"
+    }
+  });
+
+  assert.equal(normalized.image.assetRef, "image-abc123-1200x800-jpg");
+  assert.equal(normalized.image.alt, "A useful image description");
+});

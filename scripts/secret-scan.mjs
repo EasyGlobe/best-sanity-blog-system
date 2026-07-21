@@ -1,7 +1,8 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("..", import.meta.url).pathname;
+const root = fileURLToPath(new URL("..", import.meta.url));
 const ignoredDirectories = new Set([".git", "node_modules", "dist", "coverage"]);
 const ignoredFiles = new Set(["package-lock.json"]);
 const checks = [

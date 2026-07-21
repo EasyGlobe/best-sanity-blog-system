@@ -69,6 +69,10 @@ export function portableTextToPlainText(blocks = []) {
         return tableToPlainText(block);
       }
 
+      if (block?._type === "richTableBlock") {
+        return richTableToPlainText(block);
+      }
+
       return "";
     })
     .filter(Boolean)
@@ -330,6 +334,7 @@ function normalizeImage(value) {
 
   return {
     url: value.url ?? value.asset?.url,
+    assetRef: value.asset?._ref,
     alt: value.alt,
     caption: value.caption,
     credit: value.credit
@@ -376,6 +381,16 @@ function tableToPlainText(block) {
   return (block.rows ?? [])
     .map((row) => (Array.isArray(row?.cells) ? row.cells.join(" ") : ""))
     .join(" ");
+}
+
+function richTableToPlainText(block) {
+  const headers = (block.columnHeaders ?? []).map((header) => header?.title ?? "");
+  const rows = (block.rows ?? []).flatMap((row) => [
+    row?.title ?? "",
+    ...(row?.cells ?? []).map((cell) => portableTextToPlainText(cell?.content ?? []))
+  ]);
+
+  return [...headers, ...rows].filter(Boolean).join(" ");
 }
 
 function parsePastedTableRows(input) {

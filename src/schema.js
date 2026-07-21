@@ -154,6 +154,13 @@ export const articleType = {
 
 export const schemaTypes = [articleType, authorType, categoryType, tagType, blockContentType];
 
+export const richTableBlockContentType = {
+  ...blockContentType,
+  of: [...blockContentType.of, richTableBlock()]
+};
+
+export const richTableSchemaTypes = [articleType, authorType, categoryType, tagType, richTableBlockContentType];
+
 function imageField(name, title, group) {
   return {
     name,
@@ -220,6 +227,14 @@ function tableBlock() {
         };
       }
     }
+  };
+}
+
+function richTableBlock() {
+  return {
+    name: "richTableBlock",
+    title: "Rich table",
+    type: "richTableBlock"
   };
 }
 

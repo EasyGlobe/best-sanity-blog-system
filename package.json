@@ -28,14 +28,67 @@
     "./schema": {
       "types": "./src/schema.d.ts",
       "default": "./src/schema.js"
+    },
+    "./react": {
+      "types": "./src/react.d.ts",
+      "default": "./src/react.js"
+    },
+    "./image": {
+      "types": "./src/image.d.ts",
+      "default": "./src/image.js"
+    },
+    "./studio": {
+      "types": "./src/studio.d.ts",
+      "default": "./src/studio.js"
     }
   },
   "scripts": {
     "test": "node --test src/*.test.js",
-    "secret-scan": "node scripts/secret-scan.mjs"
+    "typecheck": "tsc -p tests/types/tsconfig.json",
+    "secret-scan": "node scripts/secret-scan.mjs",
+    "studio:check": "node scripts/studio-check.mjs",
+    "pack:check": "npm pack --dry-run --cache ./node_modules/.cache/npm-pack"
+  },
+  "peerDependencies": {
+    "@portabletext/react": "^6.2.0",
+    "@sanity/image-url": "^2.1.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "sanity": "^6.5.0",
+    "sanity-plugin-rich-table": "^2.2.3",
+    "styled-components": "^6.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@portabletext/react": { "optional": true },
+    "@sanity/image-url": { "optional": true },
+    "react": { "optional": true },
+    "react-dom": { "optional": true },
+    "sanity": { "optional": true },
+    "sanity-plugin-rich-table": { "optional": true },
+    "styled-components": { "optional": true }
+  },
+  "devDependencies": {
+    "@portabletext/react": "6.2.0",
+    "@sanity/image-url": "2.1.1",
+    "@types/react": "19.2.17",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "sanity": "6.5.0",
+    "sanity-plugin-rich-table": "2.2.3",
+    "styled-components": "6.1.18",
+    "typescript": "5.9.3"
   },
   "files": [
-    "src",
+    "src/index.js",
+    "src/index.d.ts",
+    "src/schema.js",
+    "src/schema.d.ts",
+    "src/image.js",
+    "src/image.d.ts",
+    "src/react.js",
+    "src/react.d.ts",
+    "src/studio.js",
+    "src/studio.d.ts",
     "docs",
     "examples",
     "README.md",

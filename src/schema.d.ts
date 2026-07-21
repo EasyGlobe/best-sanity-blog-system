@@ -4,3 +4,5 @@ export const categoryType: Record<string, unknown>;
 export const tagType: Record<string, unknown>;
 export const articleType: Record<string, unknown>;
 export const schemaTypes: Array<Record<string, unknown>>;
+export const richTableBlockContentType: Record<string, unknown>;
+export const richTableSchemaTypes: Array<Record<string, unknown>>;
